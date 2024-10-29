@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Command Cheatsheet</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Cheatsheet</h1>
+        <div id="controls">
+            <input type="text" id="searchInput" placeholder="Search for commands..." aria-label="Search for commands">
+            <select id="categoryFilter" aria-label="Filter by category">
+                <option value="all">All Categories</option>
+                <!-- Categories will be populated dynamically via JavaScript -->
+            </select>
+            <button id="clearSearch" title="Clear Search">Clear</button>
+            <button id="themeToggle" title="Toggle Theme">🌙 Dark Mode</button>
+            <button id="exportData" title="Export Commands">Export</button>
+            <button id="importData" title="Import Commands">Import</button>
+            <button id="resetData" title="Reset to Default">Reset</button>
+        </div>
+    </header>
+    <main>
+        <div id="commandsContainer">
+            <!-- Placeholder for dynamically loaded command categories -->
+        </div>
+        <button id="addCommandButton" title="Add Custom Command">Add Custom Command</button>
+    </main>
+
+    <!-- Modal for adding custom commands -->
+    <div id="addCommandModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add Custom Command</h2>
+            <form id="addCommandForm">
+                <input type="text" id="newCommand" placeholder="Command" required>
+                <input type="text" id="newDescription" placeholder="Description" required>
+                <textarea id="newExamples" placeholder="Examples (one per line)" required></textarea>
+                <select id="newCategory" required>
+                    <!-- Categories populated dynamically via JavaScript -->
+                </select>
+                <button id="saveCommand" type="button">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>Linux Command Cheatsheet by Daniel Sol. All Rights Reserved 2024.</p>
+    </footer>
+    <div id="copyConfirmation">Copied to clipboard!</div>
+    <input type="file" id="fileInput" style="display: none;">
+
+    <!-- Include main script file that dynamically loads all data files -->
+    <script src="script.js"></script>
+</body>
+</html>
