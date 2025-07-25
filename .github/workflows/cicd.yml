@@ -98,19 +98,10 @@ jobs:
               .[] | "\(.key): \(.value / $total * 100 | (. * 10 | round / 10))% (\(.value) bytes)"
             ' | tee language_breakdown.txt
           fi
-        # Debug: Confirm job completion
-        - name: Debug Job Completion
-          run: echo "Check-languages job completed successfully."
 
-      # Step 5: Save language comments (optional, enables if needed)
-      # - name: Comments Language Breakdown
-      #   run: |
-      #     if [ -f language_breakdown.txt ]; then
-      #       gh pr comment -F language_breakdown.txt
-      #     fi
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   if: ${{ github.event_name == 'pull_request' }}
+      # Step 5: Debug Job Completion
+      - name: Debug Job Completion
+        run: echo "Check-languages job completed successfully."
 
   lint-workflows:
     runs-on: ubuntu-latest
@@ -123,20 +114,34 @@ jobs:
       - name: Run actionlint
         run: |
           if compgen -G ".github/workflows/*.yml" > /dev/null; then
-            docker run --rm -v ${{ github.workspace }}:/repo --workdir /repo/workflows rhysd/actionlint:latest -color .github/workflows/*.yml
+            docker run --rm -v ${{ github.workspace }}:/repo --workdir /repo rhysd/actionlint:latest -color .github/workflows/*.yml | tee -a lint_results.txt
           else
-            echo "No workflow YAML files found to lint."
+            echo "No workflow YAML files found to lint." | tee -a lint_results.txt
           fi
         continue-on-error: true
-      # Debug: Confirm job completion
+
+      # Step 3: Debug Job Completion
       - name: Debug Job Completion
         run: echo "Lint-workflows job completed successfully."
+
+      # Step 4: Commit Linting Results
+      - name: Commit Linting Results
+        run: |
+          if [ -f lint_results.txt ]; then
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+            git add lint_results.txt
+            git commit -m "Update linting results" || echo "No changes to commit"
+            git push || echo "No push permission or no changes"
+          fi
+        if: ${{ github.event_name != 'pull_request' }}
+        continue-on-error: true
 
   lint-code:
     runs-on: ubuntu-latest
     steps:
       # Step 1: Checks out the repository
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       # Step 2: Cache apt packages
@@ -169,18 +174,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '') }}
+        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '')) }}
 
       # Step 6: Install ESLint and Stylelint if package.json exists
       - name: Install linting tools
         run: |
           if [ -f package.json ]; then
-            npm install --save-dev eslint stylelint stylelint-config-standard
+            npm install --force --save-dev eslint stylelint stylelint-config-standard
             npx eslint --init --yes || true
           else
             echo "No package.json found, skipping ESLint and Stylelint setup." | tee -a lint_results.txt
           fi
-        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '') }}
+        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '')) }}
 
       # Step 7: Run ESLint for JavaScript
       - name: Run ESLint
@@ -208,17 +213,18 @@ jobs:
       - name: Debug Job Completion
         run: echo "Lint-code job completed successfully."
 
-      # Step 10: Save linting results (optional, enable if needed)
-      # - name: Commit Linting Results
-      #   run: |
-      #     if [ -f lint_results.txt ]; then
-      #       git config user.name "GitHub Actions"
-      #       git config user.email "actions@github.com"
-      #       git add lint_results.txt
-      #       git commit -m "Update linting results"
-      #       git push
-      #     fi
-      #   if: ${{ github.event_name != 'pull_request' }}
+      # Step 10: Commit Linting Results
+      - name: Commit Linting Results
+        run: |
+          if [ -f lint_results.txt ]; then
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+            git add lint_results.txt
+            git commit -m "Update linting results" || echo "No changes to commit"
+            git push || echo "No push permission or no changes"
+          fi
+        if: ${{ github.event_name != 'pull_request' }}
+        continue-on-error: true
 
   codeql-analysis:
     runs-on: ubuntu-latest
@@ -231,7 +237,21 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step 2: Initialize CodeQL for JavaScript
+      # Step 2: Check for relevant files
+      - name: Check for Relevant Files
+        id: check-files
+        run: |
+          if compgen -G "**/*.html" > /dev/null || compgen -G "**/*.css" > /dev/null || \
+             compgen -G "**/*.js" > /dev/null || compgen -G "**/*.yaml" > /dev/null || \
+             compgen -G "**/*.yml" > /dev/null; then
+            echo "Relevant files found."
+            echo "files_found=true" >> $GITHUB_ENV
+          else
+            echo "No relevant files (HTML, CSS, JS, YAML) found."
+            echo "files_found=false" >> $GITHUB_ENV
+          fi
+
+      # Step 3: Initialize CodeQL for JavaScript
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -239,21 +259,25 @@ jobs:
           queries: security-and-quality
           config-file: .codeql/codeql-config.yml
         continue-on-error: true
-        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.html') != '' || hashFiles('**/*.css') != '' || hashFiles('**/*.js') != '' || hashFiles('**/*.yaml') != '' || hashFiles('**/*.yml') != '') }}
+        if: env.files_found == 'true'
 
-      # Step 3: Autobuild for JavaScript
+      # Step 4: Autobuild for JavaScript
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
         continue-on-error: true
-        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.html') != '' || hashFiles('**/*.css') != '' || hashFiles('**/*.js') != '' || hashFiles('**/*.yaml') != '' || hashFiles('**/*.yml') != '') }}
+        if: env.files_found == 'true'
 
-      # Step 4: Perform CodeQL Analysis
+      # Step 5: Perform CodeQL Analysis
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         continue-on-error: true
-        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.html') != '' || hashFiles('**/*.css') != '' || hashFiles('**/*.js') != '' || hashFiles('**/*.yaml') != '' || hashFiles('**/*.yml') != '') }}
+        if: env.files_found == 'true'
 
-      # Step 5: Debug Job Completion
+      # Step 6: Debug Job Completion
       - name: Debug Job Completion
-        run: echo "CodeQL-analysis job completed successfully."
-        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.html') != '' || hashFiles('**/*.css') != '' || hashFiles('**/*.js') != '' || hashFiles('**/*.yaml') != '' || hashFiles('**/*.yml') != '') }}
+        run: |
+          if [ "$files_found" == "true" ]; then
+            echo "CodeQL-analysis job completed successfully."
+          else
+            echo "CodeQL-analysis job skipped due to no relevant files."
+          fi
