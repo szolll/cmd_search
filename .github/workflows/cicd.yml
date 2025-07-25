@@ -151,13 +151,19 @@ jobs:
         with:
           path: /var/cache/apt/archives
           key: apt-${{ runner.os }}-yamllint-${{ hashFiles('/etc/apt/sources.list.d/*') }}
+        continue-on-error: true
 
       # Step 3: Install yamllint
       - name: Install yamllint
         run: |
-          sudo apt-get update
-          sudo apt-get install -y yamllint
+          if [ -d /var/cache/apt/archives ]; then
+            sudo apt-get update
+            sudo apt-get install -y yamllint
+          else
+            echo "No apt cache directory found, skipping installation."
+          fi
         if: steps.apt-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
 
       # Step 4: Run yamllint for YAML files
       - name: Run yamllint
@@ -251,7 +257,18 @@ jobs:
             echo "files_found=false" >> $GITHUB_ENV
           fi
 
-      # Step 3: Initialize CodeQL for JavaScript
+      # Step 3: Verify CodeQL config file
+      - name: Verify CodeQL Config
+        run: |
+          if [ -f .codeql/codeql-config.yml ]; then
+            echo "CodeQL config file found."
+          else
+            echo "Error: CodeQL config file (.codeql/codeql-config.yml) not found."
+            exit 1
+          fi
+        if: env.files_found == 'true'
+
+      # Step 4: Initialize CodeQL for JavaScript
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -261,19 +278,19 @@ jobs:
         continue-on-error: true
         if: env.files_found == 'true'
 
-      # Step 4: Autobuild for JavaScript
+      # Step 5: Autobuild for JavaScript
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
         continue-on-error: true
         if: env.files_found == 'true'
 
-      # Step 5: Perform CodeQL Analysis
+      # Step 6: Perform CodeQL Analysis
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         continue-on-error: true
         if: env.files_found == 'true'
 
-      # Step 6: Debug Job Completion
+      # Step 7: Debug Job Completion
       - name: Debug Job Completion
         run: |
           if [ "$files_found" == "true" ]; then
