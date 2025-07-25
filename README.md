@@ -15,11 +15,15 @@ Automated Linting: GitHub Actions workflow for HTML, CSS, and JavaScript validat
 
 ## Installation
 
-Clone the repository:git clone https://github.com/szolll/cmd_search.git
+Clone the repository:
+```
+git clone https://github.com/szolll/cmd_search.git
+```
 
-
-Enter the directory:cd cmd_search
-
+Enter the directory:
+```
+cd cmd_search
+```
 
 Launch index.html in any web browser.
 
@@ -34,17 +38,10 @@ No additional setup needed—pure client-side application.
 ## Requirements
 
 Modern web browser (e.g., Chrome, Firefox).
-Optional: Tools for local linting if extending the workflow.
 
-## Local Setup
-
-Clone this repo.
-
-Edit files to incorporate new commands or enhancements.
-
-Test by reloading index.html.
 
 ## Linting
+
 Integrated GitHub Actions for code quality:
 
 [![Language Checker](https://github.com/szolll/cmd_search/actions/workflows/lint-html-css-java.yml/badge.svg)](https://github.com/szolll/cmd_search/actions/workflows/lint-html-css-java.yml)
