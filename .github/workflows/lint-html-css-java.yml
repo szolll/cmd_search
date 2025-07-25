@@ -51,7 +51,7 @@ jobs:
               # Write response to a temporary file
               echo "$response" > language_response.json
               # Encode response to handle special characters
-              encoded_response=$(base64 -w0 language_response.json)
+              encoded_response=$(base64 -w0 "language_response.json")
               echo "languages=$encoded_response" >> "$GITHUB_ENV"
               echo "API call succeeded on attempt $attempt"
               break
@@ -209,22 +209,22 @@ jobs:
           node-version: '20'
         if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '') }}
 
-      # Step 6: Install ESLint and Stylelint if package.json exists
+      # Step 6: Install ESLint and Stylelint
       - name: Install linting tools
         run: |
-          if [ -f package.json ]; then
-            npm install --save-dev eslint stylelint stylelint-config-standard
-            npx eslint --init --yes || true
-          else
-            echo "No package.json found, skipping ESLint and Stylelint setup." | tee -a lint_results.txt
-          fi
+          npm install --save-dev eslint stylelint stylelint-config-standard
+          npx eslint --init --yes || true
         if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '') }}
+        continue-on-error: true
 
       # Step 7: Run ESLint for JavaScript
       - name: Run ESLint
         run: |
-          if compgen -G "./**/*.js" >/dev/null; then
-            npx eslint "./**/*.js" | tee -a lint_results.txt
+          js_files=$(find . -type f -iname "*.js")
+          if [ -n "$js_files" ]; then
+            echo "Found JavaScript files:"
+            echo "$js_files"
+            npx eslint "$js_files" | tee -a lint_results.txt
           else
             echo "No JavaScript files found to lint." | tee -a lint_results.txt
           fi
@@ -234,8 +234,11 @@ jobs:
       # Step 8: Run Stylelint for CSS
       - name: Run Stylelint
         run: |
-          if compgen -G "./**/*.css" >/dev/null; then
-            npx stylelint "./**/*.css" | tee -a lint_results.txt
+          css_files=$(find . -type f -iname "*.css")
+          if [ -n "$css_files" ]; then
+            echo "Found CSS files:"
+            echo "$css_files"
+            npx stylelint "$css_files" | tee -a lint_results.txt
           else
             echo "No CSS files found to lint." | tee -a lint_results.txt
           fi
@@ -338,10 +341,7 @@ jobs:
 
       # Step 6: Autobuild for JavaScript
       - name: Autobuild
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/work/_temp/codeql_databases
-          key: codeql-${{ runner.os }}-javascript-${{ github.sha }}
+        uses: github/codeql-action/autobuild@v3
         continue-on-error: true
         if: env.files_found == 'true'
 
