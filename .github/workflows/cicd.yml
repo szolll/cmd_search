@@ -98,17 +98,26 @@ jobs:
             ' | tee language_breakdown.txt
           fi
 
-      # Step 5: Upload Language Breakdown as Artifact
+      # Step 5: Check for Language Breakdown File
+      - name: Check Language Breakdown File
+        run: |
+          if [ -f language_breakdown.txt ]; then
+            echo "language_breakdown_exists=true" >> $GITHUB_ENV
+          else
+            echo "language_breakdown_exists=false" >> $GITHUB_ENV
+          fi
+
+      # Step 6: Upload Language Breakdown as Artifact
       - name: Upload Language Breakdown
         uses: actions/upload-artifact@v4
         with:
           name: language-breakdown
           path: language_breakdown.txt
           retention-days: 7
-        if: file_exists('language_breakdown.txt')
+        if: env.language_breakdown_exists == 'true'
         continue-on-error: true
 
-      # Step 6: Debug Job Completion
+      # Step 7: Debug Job Completion
       - name: Debug Job Completion
         run: echo "Check-languages job completed successfully."
 
@@ -129,17 +138,26 @@ jobs:
           fi
         continue-on-error: true
 
-      # Step 3: Upload Linting Results as Artifact
+      # Step 3: Check for Linting Results File
+      - name: Check Linting Results File
+        run: |
+          if [ -f lint_results.txt ]; then
+            echo "lint_results_exists=true" >> $GITHUB_ENV
+          else
+            echo "lint_results_exists=false" >> $GITHUB_ENV
+          fi
+
+      # Step 4: Upload Linting Results as Artifact
       - name: Upload Linting Results
         uses: actions/upload-artifact@v4
         with:
           name: lint-results-workflows
           path: lint_results.txt
           retention-days: 7
-        if: file_exists('lint_results.txt')
+        if: env.lint_results_exists == 'true'
         continue-on-error: true
 
-      # Step 4: Debug Job Completion
+      # Step 5: Debug Job Completion
       - name: Debug Job Completion
         run: echo "Lint-workflows job completed successfully."
 
@@ -218,17 +236,26 @@ jobs:
         continue-on-error: true
         if: ${{ github.event_name != 'workflow_dispatch' && hashFiles('**/*.css') != '' }}
 
-      # Step 9: Upload Linting Results as Artifact
+      # Step 9: Check for Linting Results File
+      - name: Check Linting Results File
+        run: |
+          if [ -f lint_results.txt ]; then
+            echo "lint_results_exists=true" >> $GITHUB_ENV
+          else
+            echo "lint_results_exists=false" >> $GITHUB_ENV
+          fi
+
+      # Step 10: Upload Linting Results as Artifact
       - name: Upload Linting Results
         uses: actions/upload-artifact@v4
         with:
           name: lint-results-code
           path: lint_results.txt
           retention-days: 7
-        if: file_exists('lint_results.txt')
+        if: env.lint_results_exists == 'true'
         continue-on-error: true
 
-      # Step 10: Debug Job Completion
+      # Step 11: Debug Job Completion
       - name: Debug Job Completion
         run: echo "Lint-code job completed successfully."
 
@@ -270,9 +297,15 @@ jobs:
           echo "paths-ignore:" >> .codeql/codeql-config.yml
           echo "  - '**/*.php'" >> .codeql/codeql-config.yml
           echo "Created .codeql/codeql-config.yml"
-          cat .codeql/codeql-config.yml
+          if [ -f .codeql/codeql-config.yml ]; then
+            echo "Config file created successfully:"
+            cat .codeql/codeql-config.yml
+          else
+            echo "Error: Failed to create .codeql/codeql-config.yml"
+            exit 1
+          fi
         if: env.files_found == 'true'
-        continue-on-error: true
+        continue-on-error: false
 
       # Step 4: Verify CodeQL config
       - name: Verify CodeQL Config
