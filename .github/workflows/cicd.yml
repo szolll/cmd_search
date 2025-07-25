@@ -1,5 +1,3 @@
-# .github/workflows/language-checker.yml
-
 # Name of the workflow
 name: Language Checker
 
@@ -15,7 +13,6 @@ on:
 jobs:
   check-languages:
     runs-on: ubuntu-latest
-
     steps:
       # Step 1: Checks out the repository
       - name: Checkout Repository
@@ -42,9 +39,9 @@ jobs:
         id: list-languages
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true # Continue even if this step fails
+        continue-on-error: true
 
-      # Step 4: Display language breakdown or error message
+      # Step 4: Validate and display language breakdown
       - name: Display Language Breakdown
         run: |
           echo "Repository Language Breakdown:"
@@ -52,11 +49,105 @@ jobs:
           if [ -z "${{ steps.list-languages.outputs.languages }}" ]; then
             echo "Error: Failed to retrieve language statistics."
             exit 1
-          else
-            echo ${{ steps.list-languages.outputs.languages }} | jq -r '
-              (map(.) | add) as $total |
-              to_entries |
-              sort_by(-.value) |
-              .[] | "\(.key): \(.value / $total * 100 | (. * 10 | round / 10))% (\(.value) bytes)"
-            '
           fi
+          # Log raw output for debugging
+          echo "Raw language output: ${{ steps.list-languages.outputs.languages }}"
+          # Validate JSON format
+          if ! echo "${{ steps.list-languages.outputs.languages }}" | jq . > /dev/null 2>&1; then
+            echo "Error: Invalid JSON format in language statistics."
+            exit 1
+          fi
+          echo "${{ steps.list-languages.outputs.languages }}" | jq -r '
+            (map(.) | add) as $total |
+            to_entries |
+            sort_by(-.value) |
+            .[] | "\(.key): \(.value / $total * 100 | (. * 10 | round / 10))% (\(.value) bytes)"
+          '
+
+  lint-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checks out the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Run actionlint for workflow files
+      - name: Run actionlint
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/repo --workdir /repo rhysd/actionlint:latest -color .github/workflows/*.yml
+        continue-on-error: true
+
+  lint-code:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checks out the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js for ESLint and Stylelint
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Step 3: Install yamllint
+      - name: Install yamllint
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yamllint
+
+      # Step 4: Run yamllint for YAML files
+      - name: Run yamllint
+        run: |
+          yamllint --strict **/*.yml **/*.yaml
+        continue-on-error: true
+
+      # Step 5: Install ESLint and Stylelint
+      - name: Install linting tools
+        run: |
+          npm install --save-dev eslint stylelint stylelint-config-standard
+          npx eslint --init || true # Initialize ESLint with default config if not present
+      # Step 6: Run ESLint for JavaScript
+      - name: Run ESLint
+        run: |
+          npx eslint **/*.js
+        continue-on-error: true
+
+      # Step 7: Run Stylelint for CSS
+      - name: Run Stylelint
+        run: |
+          npx stylelint **/*.css
+        continue-on-error: true
+
+  codeql-analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      # Step 1: Checks out the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Initialize CodeQL for JavaScript and YAML
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-and-quality
+          paths: |
+            **/*.html
+            **/*.css
+            **/*.js
+            **/*.yaml
+            **/*.yml
+
+      # Step 3: Autobuild (mainly for JavaScript)
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      # Step 4: Perform CodeQL analysis
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
