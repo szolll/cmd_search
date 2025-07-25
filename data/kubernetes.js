@@ -7,7 +7,7 @@ const kubernetesCommands = [
             'kubectl get nodes - List all nodes in the cluster.',
             'kubectl version - Display client and server version information.'
         ],
-        category: 'Cluster Management'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl apply',
@@ -17,7 +17,7 @@ const kubernetesCommands = [
             'kubectl apply -f dir/ - Apply configurations from all files in a directory.',
             'kubectl apply -f https://url/to/config.yaml - Apply a configuration from a URL.'
         ],
-        category: 'Resource Management'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl get',
@@ -27,7 +27,7 @@ const kubernetesCommands = [
             'kubectl get deployments --namespace kube-system - List deployments in kube-system.',
             'kubectl get svc -o wide - List services with detailed information.'
         ],
-        category: 'Resource Management'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl describe',
@@ -37,7 +37,7 @@ const kubernetesCommands = [
             'kubectl describe node minikube - Show details of the node "minikube".',
             'kubectl describe service my-service - Show details of the service "my-service".'
         ],
-        category: 'Debugging'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl create',
@@ -47,7 +47,7 @@ const kubernetesCommands = [
             'kubectl create namespace my-namespace - Create a namespace named "my-namespace".',
             'kubectl create secret generic my-secret --from-literal=key=value - Create a secret.'
         ],
-        category: 'Resource Management'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl delete',
@@ -57,7 +57,7 @@ const kubernetesCommands = [
             'kubectl delete -f deployment.yaml - Delete resources defined in deployment.yaml.',
             'kubectl delete namespace my-namespace - Delete the namespace "my-namespace".'
         ],
-        category: 'Resource Management'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl exec',
@@ -67,7 +67,7 @@ const kubernetesCommands = [
             'kubectl exec -it my-pod -- bash - Start an interactive bash session in "my-pod".',
             'kubectl exec my-pod -c my-container -- env - Show environment variables in "my-container".'
         ],
-        category: 'Debugging'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl logs',
@@ -77,7 +77,7 @@ const kubernetesCommands = [
             'kubectl logs my-pod -c my-container - Print logs for a specific container.',
             'kubectl logs my-pod --follow - Stream logs in real-time.'
         ],
-        category: 'Debugging'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl scale',
@@ -87,7 +87,7 @@ const kubernetesCommands = [
             'kubectl scale --replicas=0 deployment/my-deployment - Scale down to 0 replicas.',
             'kubectl scale statefulset my-statefulset --replicas=5 - Scale a statefulset.'
         ],
-        category: 'Resource Management'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl config',
@@ -97,7 +97,7 @@ const kubernetesCommands = [
             'kubectl config use-context my-cluster - Switch to the "my-cluster" context.',
             'kubectl config set-cluster my-cluster --server=https://cluster-url - Set cluster details.'
         ],
-        category: 'Cluster Management'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl port-forward',
@@ -107,7 +107,7 @@ const kubernetesCommands = [
             'kubectl port-forward pod/my-pod 8080:80 - Forward local port 8080 to pod port 80.',
             'kubectl port-forward deployment/my-deployment 5000:6000 - Forward to a deployment pod.'
         ],
-        category: 'Networking'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl top',
@@ -117,7 +117,7 @@ const kubernetesCommands = [
             'kubectl top node - Show resource usage for all nodes.',
             'kubectl top pod --namespace my-namespace - Show pod usage in a specific namespace.'
         ],
-        category: 'Monitoring'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl rollout',
@@ -127,7 +127,7 @@ const kubernetesCommands = [
             'kubectl rollout undo deployment/my-deployment - Roll back to the previous deployment.',
             'kubectl rollout restart deployment/my-deployment - Restart a deployment.'
         ],
-        category: 'Resource Management'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl expose',
@@ -137,7 +137,7 @@ const kubernetesCommands = [
             'kubectl expose pod my-pod --port=8080 --type=NodePort - Expose a pod as NodePort.',
             'kubectl expose rs my-replicaset --port=80 --target-port=8080 - Expose a replica set.'
         ],
-        category: 'Networking'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl annotate',
@@ -147,7 +147,7 @@ const kubernetesCommands = [
             'kubectl annotate pod my-pod key- - Remove annotation "key" from "my-pod".',
             'kubectl annotate deployment my-deployment key=value --overwrite - Overwrite existing annotation.'
         ],
-        category: 'Resource Management'
+        category: 'Kubernetes Commands'
     },
     {
         command: 'kubectl label',
@@ -157,7 +157,7 @@ const kubernetesCommands = [
             'kubectl label pod my-pod app- - Remove label "app" from "my-pod".',
             'kubectl label deployment my-deployment env=prod --overwrite - Overwrite existing label.'
         ],
-        category: 'Resource Management'
+        category: 'Kubernetes Commands'
     }
 ];
 commandsData.push(...kubernetesCommands);
