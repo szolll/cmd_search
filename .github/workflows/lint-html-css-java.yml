@@ -34,9 +34,9 @@ jobs:
             chmod +x "$HOME/.jq-cache/jq"
             echo "$HOME/.jq-cache" >> "$GITHUB_PATH"
           fi
-        if: steps.cache-jq.outputs.cache-hit != 'true'
+        if: steps.cache-jq.cache-hits != 'true'
 
-      # Step 3: Retrieve repository language statistics via GitHub API with retries
+      # Step 3: Retrieve repository language statistics via GitHub API
       - name: Get Repository Languages
         id: list-languages
         env:
@@ -48,9 +48,7 @@ jobs:
               "https://api.github.com/repos/${{ github.repository }}/languages")
             echo "Raw API response (attempt $attempt): $response" >> "language_response.log"
             if echo "$response" | jq . >/dev/null 2>&1; then
-              # Write response to a temporary file
               echo "$response" > language_response.json
-              # Encode response to handle special characters
               encoded_response=$(base64 -w0 "language_response.json")
               echo "languages=$encoded_response" >> "$GITHUB_ENV"
               echo "API call succeeded on attempt $attempt"
@@ -76,16 +74,12 @@ jobs:
             echo "Error: No language statistics retrieved."
             exit 1
           fi
-          # Decode the response
           decoded_languages=$(echo "${languages}" | base64 -d)
-          # Log raw output for debugging
           echo "Raw language output: $decoded_languages"
-          # Validate JSON format
           if ! echo "$decoded_languages" | jq '.' >/dev/null 2>&1; then
             echo "Error: Invalid JSON format in language statistics."
             exit 1
           fi
-          # Check if relevant languages exist
           relevant_langs=$(echo "$decoded_languages" | jq -r '
             to_entries | map(select(.key | IN("HTML", "CSS", "JavaScript", "YAML"))) | length')
           if [ "$relevant_langs" -eq 0 ]; then
