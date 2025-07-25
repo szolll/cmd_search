@@ -1,0 +1,104 @@
+const librenmsCommands = [
+    {
+        command: 'lnms',
+        description: 'Command-line interface for managing LibreNMS',
+        examples: [
+            'lnms --version - Display the LibreNMS version.',
+            'lnms config:get - Fetch current configuration settings.',
+            'lnms device:add - Add a new device to LibreNMS.'
+        ],
+        category: 'General'
+    },
+    {
+        command: 'lnms config:get',
+        description: 'Retrieve configuration settings from the database, config.php, or defaults',
+        examples: [
+            'lnms config:get snmp.community - Display SNMP community settings.',
+            'lnms config:get --dump - Dump all configuration settings.',
+            'lnms config:get --dump | jq - Pretty print configuration settings.'
+        ],
+        category: 'Configuration'
+    },
+    {
+        command: 'lnms config:set',
+        description: 'Set configuration settings in the database',
+        examples: [
+            'lnms config:set snmp.community "[\\"public\\"]" - Set SNMP community to "public".',
+            'lnms config:set login_message "Authorized users only" - Set custom login message.',
+            'lnms config:set sensors.guess_limits false - Disable guessing sensor limits.'
+        ],
+        category: 'Configuration'
+    },
+    {
+        command: 'lnms device:add',
+        description: 'Add a new device to LibreNMS for monitoring',
+        examples: [
+            'lnms device:add --v2c -c my_company mydevice.example.com - Add device with SNMP v2c.',
+            'lnms device:add --ping-only 192.168.1.1 - Add a ping-only device.',
+            'lnms device:add --v3 -a authPriv -u my_user -A my_pass -x AES mydevice - Add device with SNMP v3.'
+        ],
+        category: 'Device Management'
+    },
+    {
+        command: 'lnms poller:discovery',
+        description: 'Run discovery for devices to collect information',
+        examples: [
+            'lnms poller:discovery localhost - Run discovery for localhost.',
+            'lnms poller:discovery -m ports localhost - Run discovery for ports module only.',
+            'lnms poller:discovery -v all - Run discovery with verbose output.'
+        ],
+        category: 'Monitoring'
+    },
+    {
+        command: 'lnms poller:poll',
+        description: 'Poll devices to collect and store monitoring data',
+        examples: [
+            'lnms poller:poll localhost - Poll data for localhost.',
+            'lnms poller:poll -m bgp-peers mydevice - Poll BGP peers module only.',
+            'lnms poller:poll -vv all - Poll with verbose debugging output.'
+        ],
+        category: 'Monitoring'
+    },
+    {
+        command: 'lnms snmp:scan',
+        description: 'Scan a network for SNMP-enabled devices and add them',
+        examples: [
+            'lnms snmp:scan 192.168.1.0/24 - Scan the specified network for devices.',
+            'lnms snmp:scan --ping-fallback 192.168.0.0/24 - Scan with ping fallback.',
+            'lnms snmp:scan -t 10 192.168.1.1/32 - Scan a single host with 10 threads.'
+        ],
+        category: 'Device Management'
+    },
+    {
+        command: 'lnms port:purge',
+        description: 'Delete ports from the database, useful for cleanup',
+        examples: [
+            'lnms port:purge -p 123 - Purge port with port-id 123.',
+            'lnms port:purge -f ports.txt - Purge ports listed in ports.txt.',
+            'echo "SELECT port_id FROM ports WHERE deleted=1" | mysql librenms | lnms port:purge -f - - Purge deleted ports from database.'
+        ],
+        category: 'Maintenance'
+    },
+    {
+        command: 'lnms db:backup',
+        description: 'Backup the LibreNMS database',
+        examples: [
+            'lnms db:backup - Backup the database to a default location.',
+            'lnms db:backup --path /backup/librenms.sql - Backup to a specified file.',
+            'mysqldump librenms -u root -p > librenms.sql - Manual backup using mysqldump.'
+        ],
+        category: 'Maintenance'
+    },
+    {
+        command: 'lnms validate',
+        description: 'Run validation checks on the LibreNMS installation',
+        examples: [
+            'lnms validate - Check installation for issues and recommended fixes.',
+            'lnms validate -v - Run validation with verbose output.',
+            'lnms validate --no-interaction - Run validation without interactive prompts.'
+        ],
+        category: 'Maintenance'
+    }
+];
+commandsData.push(...librenmsCommands);
+console.log('LibreNMS Commands Loaded:', librenmsCommands);
