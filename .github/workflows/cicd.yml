@@ -1,0 +1,62 @@
+# .github/workflows/language-checker.yml
+
+# Name of the workflow
+name: Language Checker
+
+# Controls when the action will run.
+# Runs on push and pull requests to the main branch, and allows manual triggering.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  check-languages:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checks out the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up jq for JSON processing
+      - name: Cache jq
+        uses: actions/cache@v4
+        with:
+          path: ~/jq
+          key: jq-${{ runner.os }}-v1.7
+      - name: Install jq
+        run: |
+          if ! command -v jq &> /dev/null; then
+            mkdir -p ~/jq
+            curl -L https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux64 -o ~/jq/jq
+            chmod +x ~/jq/jq
+            echo "~/jq" >> $GITHUB_PATH
+          fi
+
+      # Step 3: Retrieve repository language statistics
+      - name: Get Repository Languages
+        uses: austenstone/list-repository-languages@main
+        id: list-languages
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true # Continue even if this step fails
+
+      # Step 4: Display language breakdown or error message
+      - name: Display Language Breakdown
+        run: |
+          echo "Repository Language Breakdown:"
+          echo "------------------------------"
+          if [ -z "${{ steps.list-languages.outputs.languages }}" ]; then
+            echo "Error: Failed to retrieve language statistics."
+            exit 1
+          else
+            echo ${{ steps.list-languages.outputs.languages }} | jq -r '
+              (map(.) | add) as $total |
+              to_entries |
+              sort_by(-.value) |
+              .[] | "\(.key): \(.value / $total * 100 | (. * 10 | round / 10))% (\(.value) bytes)"
+            '
+          fi
