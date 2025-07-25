@@ -1,12 +1,13 @@
+---
 # Name of the workflow
 name: Language Checker
 
 # Controls when the action will run.
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -28,7 +29,8 @@ jobs:
         run: |
           if ! command -v jq >/dev/null 2>&1; then
             mkdir -p "$HOME/.jq-cache"
-            curl -L https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux64 -o "$HOME/.jq-cache/jq"
+            curl -L https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux64 \
+              -o "$HOME/.jq-cache/jq"
             chmod +x "$HOME/.jq-cache/jq"
             echo "$HOME/.jq-cache" >> "$GITHUB_PATH"
           fi
@@ -46,7 +48,7 @@ jobs:
               "https://api.github.com/repos/${{ github.repository }}/languages")
             echo "Raw API response (attempt $attempt): $response" >> language_response.log
             if echo "$response" | jq . >/dev/null 2>&1; then
-              # Write response to a temporary file to avoid env command issues
+              # Write response to a temporary file
               echo "$response" > language_response.json
               # Encode response to handle special characters
               encoded_response=$(base64 -w0 language_response.json)
@@ -94,8 +96,8 @@ jobs:
               map(select(.key | IN("HTML", "CSS", "JavaScript", "YAML"))) |
               (map(.value) | add) as $total |
               sort_by(-.value) |
-              .[] | "\(.key): \(.value / $total * 100 | (. * 10 | round / 10))% (\(.value) bytes)"
-            ' | tee language_breakdown.txt
+              .[] | "\(.key): \(.value / $total * 100 | (. * 10 | round / 10))% (\(.value) bytes)"' \
+              | tee language_breakdown.txt
           fi
 
       # Step 5: Check for Language Breakdown File
@@ -132,7 +134,8 @@ jobs:
       - name: Run actionlint
         run: |
           if compgen -G "./.github/workflows/*.yml" >/dev/null; then
-            docker run --rm -v "${{ github.workspace }}:/repo" --workdir /repo rhysd/actionlint:latest -color ./.github/workflows/*.yml | tee -a lint_results.txt
+            docker run --rm -v "${{ github.workspace }}:/repo" --workdir /repo rhysd/actionlint:latest -color \
+              ./.github/workflows/*.yml | tee -a lint_results.txt
           else
             echo "No workflow YAML files found to lint." | tee -a lint_results.txt
           fi
@@ -275,7 +278,6 @@ jobs:
 
       # Step 2: Check for relevant files
       - name: Check for Relevant Files
-        id: check-files
         run: |
           if compgen -G "./**/*.html" >/dev/null || compgen -G "./**/*.css" >/dev/null || \
              compgen -G "./**/*.js" >/dev/null || compgen -G "./**/*.yaml" >/dev/null || \
