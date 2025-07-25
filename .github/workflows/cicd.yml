@@ -84,15 +84,14 @@ jobs:
           fi
           # Check if relevant languages exist
           relevant_langs=$(echo "$decoded_languages" | jq -r '
-            with_entries(select(.key | IN("HTML", "CSS", "JavaScript", "YAML"))) |
-            to_entries | length')
+            to_entries | map(select(.key | IN("HTML", "CSS", "JavaScript", "YAML"))) | length')
           if [ "$relevant_langs" -eq 0 ]; then
             echo "No HTML, CSS, JavaScript, or YAML files found."
           else
             echo "$decoded_languages" | jq -r '
-              with_entries(select(.key | IN("HTML", "CSS", "JavaScript", "YAML"))) |
-              (map(.value) | add) as $total |
               to_entries |
+              map(select(.key | IN("HTML", "CSS", "JavaScript", "YAML"))) |
+              (map(.value) | add) as $total |
               sort_by(-.value) |
               .[] | "\(.key): \(.value / $total * 100 | (. * 10 | round / 10))% (\(.value) bytes)"
             '
