@@ -1,0 +1,175 @@
+const fortiosCommands = [
+    {
+        command: 'get system status',
+        description: 'Display system status and version information',
+        examples: [
+            'get system status - Show FortiOS version, serial number, and system status.',
+            'get system status | grep Version - Display only the FortiOS version (e.g., 7.6.3).',
+            'get system status | grep Hostname - Show the device hostname.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'config system global',
+        description: 'Configure global system settings',
+        examples: [
+            'config system global | set hostname MyFortiGate - Set device hostname to "MyFortiGate".',
+            'config system global | set timezone 04 - Set timezone to EST (UTC-5).',
+            'config system global | set admin-sport 8443 - Change admin GUI port to 8443.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'config firewall policy',
+        description: 'Configure firewall policies for traffic control',
+        examples: [
+            'config firewall policy | edit 1 | set srcintf "wan1" | set dstintf "lan" | set srcaddr "all" | set dstaddr "all" | set action accept | set schedule "always" | set service "ALL" | set nat enable | next - Create a basic policy allowing all traffic from WAN to LAN.',
+            'config firewall policy | edit 2 | set name "WebAccess" | set srcintf "lan" | set dstintf "wan1" | set srcaddr "internal-net" | set dstaddr "web-server" | set service "HTTP" | set action accept | next - Allow HTTP traffic to a specific server.',
+            'config firewall policy | show - Display all configured firewall policies.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'config system interface',
+        description: 'Configure network interfaces (ports) on FortiGate',
+        examples: [
+            'config system interface | edit port1 | set ip 192.168.1.1 255.255.255.0 | set allowaccess ping https ssh | next - Configure port1 with IP and enable ping/HTTPS/SSH access.',
+            'config system interface | edit wan1 | set mode dhcp | next - Set wan1 to use DHCP.',
+            'config system interface | show - Display all interface configurations.',
+            'config system interface | edit port2 | set vdom "root" | set vlanid 10 | set type vlan | next - Configure a VLAN subinterface on port2.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'config switch-controller managed-switch',
+        description: 'Manage FortiSwitch devices via FortiOS FortiLink',
+        examples: [
+            'config switch-controller managed-switch | edit FS-124F-12345678 | set name "OfficeSwitch" | next - Rename a managed FortiSwitch.',
+            'config switch-controller managed-switch | edit FS-124F-12345678 | set vlan 10 | next - Assign VLAN 10 to a FortiSwitch.',
+            'get switch-controller managed-switch status - Display status of all managed FortiSwitches.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'execute switch-controller switch-software upgrade',
+        description: 'Upgrade firmware on managed FortiSwitch units',
+        examples: [
+            'execute switch-controller switch-software upgrade FS-124F-12345678 <image-id> - Upgrade a specific FortiSwitch firmware.',
+            'execute switch-controller switch-software stage all <firmware-image-file> - Stage firmware upgrade for all compatible FortiSwitches.',
+            'execute switch-controller switch-software restart delay all - Restart all FortiSwitches after a 2-minute delay post-upgrade.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'config vpn ipsec phase1-interface',
+        description: 'Configure IPsec VPN phase 1 settings',
+        examples: [
+            'config vpn ipsec phase1-interface | edit VPN1 | set interface "wan1" | set peertype any | set remote-gw 203.0.113.1 | set psksecret mysecret | next - Configure a site-to-site VPN.',
+            'config vpn ipsec phase1-interface | show - Display all IPsec phase 1 configurations.',
+            'config vpn ipsec phase1-interface | edit VPN1 | set ike-version 2 | next - Set IKEv2 for the VPN.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'diagnose debug',
+        description: 'Enable or display debug information for troubleshooting',
+        examples: [
+            'diagnose debug enable - Enable debug output.',
+            'diagnose debug application https - Display HTTPS application debug logs.',
+            'diagnose debug disable - Disable debug output.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'get router info routing-table all',
+        description: 'Display the routing table for FortiGate',
+        examples: [
+            'get router info routing-table all - Show all routes in the routing table.',
+            'get router info routing-table static - Display only static routes.',
+            'get router info routing-table bgp - Show BGP routes if configured.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'execute backup',
+        description: 'Backup the FortiOS configuration',
+        examples: [
+            'execute backup config flash - Backup configuration to local flash storage.',
+            'execute backup config ftp config.txt 192.168.1.100 user pass - Backup to an FTP server.',
+            'execute backup config tftp config.txt 192.168.1.200 - Backup to a TFTP server.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'config system dhcp server',
+        description: 'Configure DHCP server settings on FortiGate',
+        examples: [
+            'config system dhcp server | edit 1 | set dns-service default | set default-gateway 192.168.1.1 | set netmask 255.255.255.0 | set interface "internal" | config ip-range | edit 1 | set start-ip 192.168.1.10 | set end-ip 192.168.1.100 | next | end | next - Configure a basic DHCP server on the internal interface.',
+            'config system dhcp server | edit 1 | set domain "example.com" | next - Set the domain name for DHCP clients.',
+            'config system dhcp server | show - Display all DHCP server configurations.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'config system admin',
+        description: 'Configure administrative user accounts, including password changes',
+        examples: [
+            'config system admin | edit admin | set password newsecurepass | next - Change the password for the "admin" user.',
+            'config system admin | edit newuser | set accprofile "super_admin" | set password userpass | next - Create a new admin user with super admin profile.',
+            'config system admin | show - Display all admin user configurations.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'execute ping',
+        description: 'Test network connectivity from FortiGate',
+        examples: [
+            'execute ping 8.8.8.8 - Ping Google DNS to test connectivity.',
+            'execute ping-options source 192.168.1.1 | execute ping 10.0.0.1 - Ping from a specific source IP.',
+            'execute ping6 2001:4860:4860::8888 - Ping an IPv6 address.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'diagnose sys top',
+        description: 'Display real-time system resource usage',
+        examples: [
+            'diagnose sys top - Show top processes by CPU/memory usage.',
+            'diagnose sys top 5 99 - Refresh every 5 seconds, show up to 99 processes.',
+            'diagnose sys top-mem - Sort by memory usage.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'get hardware status',
+        description: 'Display hardware information and status',
+        examples: [
+            'get hardware status - Show CPU, memory, and disk usage.',
+            'get hardware nic - Display network interface hardware details.',
+            'get hardware cpu - Show detailed CPU information.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'config system dns',
+        description: 'Configure DNS server settings',
+        examples: [
+            'config system dns | set primary 8.8.8.8 | set secondary 8.8.4.4 | end - Set primary and secondary DNS servers.',
+            'config system dns | set dns-over-tls enable | end - Enable DNS over TLS.',
+            'config system dns | show - Display current DNS configurations.'
+        ],
+        category: 'FortiOS Commands'
+    },
+    {
+        command: 'config router static',
+        description: 'Configure static routes',
+        examples: [
+            'config router static | edit 1 | set gateway 192.168.1.254 | set device "wan1" | set dst 0.0.0.0 0.0.0.0 | next - Add a default static route.',
+            'config router static | edit 2 | set dst 10.0.0.0 255.255.255.0 | set gateway 192.168.2.1 | next - Add a static route to a subnet.',
+            'config router static | show - Display all static routes.'
+        ],
+        category: 'FortiOS Commands'
+    }
+];
+commandsData.push(...fortiosCommands);
+console.log('FortiOS Commands Loaded:', fortiosCommands);
