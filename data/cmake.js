@@ -7,7 +7,7 @@ const cmakeCommands = [
             'cmake --build build - Build the project in the "build" directory.',
             'cmake -S . -B build -G Ninja - Generate build system using Ninja generator.'
         ],
-        category: 'Build System'
+        category: 'CMake Commands'
     },
     {
         command: 'cmake_minimum_required',
@@ -17,7 +17,7 @@ const cmakeCommands = [
             'cmake_minimum_required(VERSION 3.15 FATAL_ERROR) - Require version 3.15, halt if not met.',
             'cmake_minimum_required(VERSION 3.0) - Set minimum version to 3.0.'
         ],
-        category: 'Project Setup'
+        category: 'CMake Commands'
     },
     {
         command: 'project',
@@ -27,7 +27,7 @@ const cmakeCommands = [
             'project(MyProject VERSION 1.0) - Define project with version 1.0.',
             'project(MyProject LANGUAGES CXX) - Specify C++ as the project language.'
         ],
-        category: 'Project Setup'
+        category: 'CMake Commands'
     },
     {
         command: 'add_executable',
@@ -37,7 +37,7 @@ const cmakeCommands = [
             'add_executable(myapp main.cpp src/file.cpp) - Include multiple source files.',
             'add_executable(myapp WIN32 main.cpp) - Create a Windows GUI executable.'
         ],
-        category: 'Target Management'
+        category: 'CMake Commands'
     },
     {
         command: 'add_library',
@@ -47,7 +47,7 @@ const cmakeCommands = [
             'add_library(mylib SHARED src/lib.cpp) - Create a shared library "mylib".',
             'add_library(mylib INTERFACE) - Create an interface library "mylib".'
         ],
-        category: 'Target Management'
+        category: 'CMake Commands'
     },
     {
         command: 'target_include_directories',
@@ -57,7 +57,7 @@ const cmakeCommands = [
             'target_include_directories(mylib PRIVATE src) - Add private include directory.',
             'target_include_directories(myapp INTERFACE include) - Add interface include directory.'
         ],
-        category: 'Target Management'
+        category: 'CMake Commands'
     },
     {
         command: 'target_link_libraries',
@@ -67,7 +67,7 @@ const cmakeCommands = [
             'target_link_libraries(myapp PRIVATE pthread) - Link "pthread" privately.',
             'target_link_libraries(myapp INTERFACE fmt) - Link "fmt" as an interface library.'
         ],
-        category: 'Target Management'
+        category: 'CMake Commands'
     },
     {
         command: 'find_package',
@@ -77,7 +77,7 @@ const cmakeCommands = [
             'find_package(OpenGL COMPONENTS GL) - Find OpenGL with GL component.',
             'find_package(Qt5 REQUIRED COMPONENTS Widgets) - Find Qt5 Widgets component.'
         ],
-        category: 'Dependency Management'
+        category: 'CMake Commands'
     },
     {
         command: 'set',
@@ -87,7 +87,7 @@ const cmakeCommands = [
             'set(SOURCES main.cpp file.cpp) - Set SOURCES to a list of files.',
             'set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type") - Set cached variable.'
         ],
-        category: 'Variable Management'
+        category: 'CMake Commands'
     },
     {
         command: 'configure_file',
@@ -97,7 +97,7 @@ const cmakeCommands = [
             'configure_file(input.txt output.txt @ONLY) - Substitute only @VAR@ variables.',
             'configure_file(template.cpp.in template.cpp) - Configure a source file.'
         ],
-        category: 'File Operations'
+        category: 'CMake Commands'
     }
 ];
 commandsData.push(...cmakeCommands);
