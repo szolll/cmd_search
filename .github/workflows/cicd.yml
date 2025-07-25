@@ -174,18 +174,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '')) }}
+        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '') }}
 
       # Step 6: Install ESLint and Stylelint if package.json exists
       - name: Install linting tools
         run: |
           if [ -f package.json ]; then
-            npm install --force --save-dev eslint stylelint stylelint-config-standard
+            npm install --save-dev eslint stylelint stylelint-config-standard
             npx eslint --init --yes || true
           else
             echo "No package.json found, skipping ESLint and Stylelint setup." | tee -a lint_results.txt
           fi
-        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '')) }}
+        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '') }}
 
       # Step 7: Run ESLint for JavaScript
       - name: Run ESLint
