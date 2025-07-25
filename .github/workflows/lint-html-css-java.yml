@@ -34,7 +34,7 @@ jobs:
             chmod +x "$HOME/.jq-cache/jq"
             echo "$HOME/.jq-cache" >> "$GITHUB_PATH"
           fi
-        if: steps.cache-jq.cache-hits != 'true'
+        if: steps.cache-jq.outputs.cache-hit != 'true'
 
       # Step 3: Retrieve repository language statistics via GitHub API
       - name: Get Repository Languages
@@ -99,8 +99,10 @@ jobs:
         run: |
           if [ -f language_breakdown.txt ]; then
             echo "language_breakdown_exists=true" >> "$GITHUB_ENV"
+            echo "Language breakdown file exists."
           else
             echo "language_breakdown_exists=false" >> "$GITHUB_ENV"
+            echo "Language breakdown file does not exist."
           fi
 
       # Step 6: Upload Language Breakdown as Artifact
@@ -140,8 +142,10 @@ jobs:
         run: |
           if [ -f lint_results.txt ]; then
             echo "lint_results_exists=true" >> "$GITHUB_ENV"
+            echo "Linting results file exists."
           else
             echo "lint_results_exists=false" >> "$GITHUB_ENV"
+            echo "Linting results file does not exist."
           fi
 
       # Step 4: Upload Linting Results as Artifact
@@ -244,8 +248,10 @@ jobs:
         run: |
           if [ -f lint_results.txt ]; then
             echo "lint_results_exists=true" >> "$GITHUB_ENV"
+            echo "Linting results file exists."
           else
             echo "lint_results_exists=false" >> "$GITHUB_ENV"
+            echo "Linting results file does not exist."
           fi
 
       # Step 10: Upload Linting Results as Artifact
