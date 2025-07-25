@@ -201,5 +201,4 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         continue-on-error: true
-        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.html') != '' || hashFiles('**/*.css') != '' || hashFiles('**/*.js') != '' || hashFiles('**/*. sele
-yaml') != '' || hashFiles('**/*.yml') != '') }}
+        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.html') != '' || hashFiles('**/*.css') != '' || hashFiles('**/*.js') != '' || hashFiles('**/*.yaml') != '' || hashFiles('**/*.yml') != '') }}
