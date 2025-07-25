@@ -98,7 +98,17 @@ jobs:
             ' | tee language_breakdown.txt
           fi
 
-      # Step 5: Debug Job Completion
+      # Step 5: Upload Language Breakdown as Artifact
+      - name: Upload Language Breakdown
+        uses: actions/upload-artifact@v4
+        with:
+          name: language-breakdown
+          path: language_breakdown.txt
+          retention-days: 7
+        if: file_exists('language_breakdown.txt')
+        continue-on-error: true
+
+      # Step 6: Debug Job Completion
       - name: Debug Job Completion
         run: echo "Check-languages job completed successfully."
 
@@ -119,22 +129,19 @@ jobs:
           fi
         continue-on-error: true
 
-      # Step 3: Debug Job Completion
+      # Step 3: Upload Linting Results as Artifact
+      - name: Upload Linting Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-results-workflows
+          path: lint_results.txt
+          retention-days: 7
+        if: file_exists('lint_results.txt')
+        continue-on-error: true
+
+      # Step 4: Debug Job Completion
       - name: Debug Job Completion
         run: echo "Lint-workflows job completed successfully."
-
-      # Step 4: Commit Linting Results
-      - name: Commit Linting Results
-        run: |
-          if [ -f lint_results.txt ]; then
-            git config user.name "GitHub Actions"
-            git config user.email "actions@github.com"
-            git add lint_results.txt
-            git commit -m "Update linting results" || echo "No changes to commit"
-            git push || echo "No push permission or no changes"
-          fi
-        if: ${{ github.event_name != 'pull_request' }}
-        continue-on-error: true
 
   lint-code:
     runs-on: ubuntu-latest
@@ -211,22 +218,19 @@ jobs:
         continue-on-error: true
         if: ${{ github.event_name != 'workflow_dispatch' && hashFiles('**/*.css') != '' }}
 
-      # Step 9: Debug Job Completion
+      # Step 9: Upload Linting Results as Artifact
+      - name: Upload Linting Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-results-code
+          path: lint_results.txt
+          retention-days: 7
+        if: file_exists('lint_results.txt')
+        continue-on-error: true
+
+      # Step 10: Debug Job Completion
       - name: Debug Job Completion
         run: echo "Lint-code job completed successfully."
-
-      # Step 10: Commit Linting Results
-      - name: Commit Linting Results
-        run: |
-          if [ -f lint_results.txt ]; then
-            git config user.name "GitHub Actions"
-            git config user.email "actions@github.com"
-            git add lint_results.txt
-            git commit -m "Update linting results" || echo "No changes to commit"
-            git push || echo "No push permission or no changes"
-          fi
-        if: ${{ github.event_name != 'pull_request' }}
-        continue-on-error: true
 
   codeql-analysis:
     runs-on: ubuntu-latest
@@ -253,7 +257,7 @@ jobs:
             echo "files_found=false" >> $GITHUB_ENV
           fi
 
-      # Step 3: Create CodeQL config if missing
+      # Step 3: Create CodeQL config
       - name: Create CodeQL Config
         run: |
           mkdir -p .codeql
