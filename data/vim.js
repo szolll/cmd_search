@@ -7,7 +7,7 @@ const vimCommands = [
             'vim -R filename - Open "filename" in read-only mode.',
             'vim +10 filename - Open "filename" and move cursor to line 10.'
         ],
-        category: 'Text Editing'
+        category: 'Vim Commands'
     },
     {
         command: ':w',
@@ -17,7 +17,7 @@ const vimCommands = [
             ':w newfile - Save the current file as "newfile".',
             ':w! - Force save the current file, overwriting if necessary.'
         ],
-        category: 'File Operations'
+        category: 'Vim Commands'
     },
     {
         command: ':q',
@@ -27,7 +27,7 @@ const vimCommands = [
             ':q! - Force quit Vim, discarding unsaved changes.',
             ':wq - Save and quit Vim.'
         ],
-        category: 'File Operations'
+        category: 'Vim Commands'
     },
     {
         command: ':e',
@@ -37,7 +37,7 @@ const vimCommands = [
             ':e! - Reload the current file, discarding changes.',
             ':e - Reload the current file.'
         ],
-        category: 'File Operations'
+        category: 'Vim Commands'
     },
     {
         command: 'i',
@@ -47,7 +47,7 @@ const vimCommands = [
             'I - Enter insert mode at the start of the current line.',
             'a - Enter insert mode after the cursor.'
         ],
-        category: 'Editing'
+        category: 'Vim Commands'
     },
     {
         command: 'dd',
@@ -57,7 +57,7 @@ const vimCommands = [
             '3dd - Delete three lines starting from the current line.',
             'd$ - Delete from the cursor to the end of the line.'
         ],
-        category: 'Editing'
+        category: 'Vim Commands'
     },
     {
         command: '/pattern',
@@ -67,7 +67,7 @@ const vimCommands = [
             '?word - Search backward for "word".',
             'n - Move to the next match of the search.'
         ],
-        category: 'Navigation'
+        category: 'Vim Commands'
     },
     {
         command: ':s',
@@ -77,7 +77,7 @@ const vimCommands = [
             ':%s/old/new/g - Replace all occurrences of "old" with "new" in the entire file.',
             ':s/old/new/c - Replace with confirmation for each occurrence.'
         ],
-        category: 'Editing'
+        category: 'Vim Commands'
     },
     {
         command: 'yy',
@@ -87,7 +87,7 @@ const vimCommands = [
             '3yy - Copy three lines starting from the current line.',
             'y$ - Copy from the cursor to the end of the line.'
         ],
-        category: 'Editing'
+        category: 'Vim Commands'
     },
     {
         command: 'p',
@@ -97,7 +97,7 @@ const vimCommands = [
             'P - Paste before the cursor.',
             '2p - Paste the copied text twice after the cursor.'
         ],
-        category: 'Editing'
+        category: 'Vim Commands'
     },
     {
         command: 'u',
@@ -107,7 +107,7 @@ const vimCommands = [
             '3u - Undo the last three changes.',
             'Ctrl-r - Redo the last undone change.'
         ],
-        category: 'Editing'
+        category: 'Vim Commands'
     },
     {
         command: 'gg',
@@ -117,7 +117,7 @@ const vimCommands = [
             'G - Go to the last line of the file.',
             '5gg - Go to line 5.'
         ],
-        category: 'Navigation'
+        category: 'Vim Commands'
     },
     {
         command: ':set',
@@ -127,7 +127,7 @@ const vimCommands = [
             ':set nonumber - Hide line numbers.',
             ':set tabstop=4 - Set tab width to 4 spaces.'
         ],
-        category: 'Configuration'
+        category: 'Vim Commands'
     },
     {
         command: 'v',
@@ -137,7 +137,7 @@ const vimCommands = [
             'V - Start visual line mode to select entire lines.',
             'Ctrl-v - Start visual block mode for column editing.'
         ],
-        category: 'Editing'
+        category: 'Vim Commands'
     },
     {
         command: ':sp',
@@ -147,7 +147,7 @@ const vimCommands = [
             ':sp filename - Open "filename" in a new horizontal split.',
             'Ctrl-w j - Move to the split below.'
         ],
-        category: 'Window Management'
+        category: 'Vim Commands'
     },
     {
         command: ':vsp',
@@ -157,7 +157,7 @@ const vimCommands = [
             ':vsp filename - Open "filename" in a new vertical split.',
             'Ctrl-w l - Move to the split to the right.'
         ],
-        category: 'Window Management'
+        category: 'Vim Commands'
     },
     {
         command: 'h',
@@ -167,7 +167,7 @@ const vimCommands = [
             '5h - Move five characters left.',
             '0 - Move to the start of the current line.'
         ],
-        category: 'Navigation'
+        category: 'Vim Commands'
     },
     {
         command: 'j',
@@ -177,7 +177,7 @@ const vimCommands = [
             '5j - Move five lines down.',
             'Ctrl-f - Scroll down one full screen.'
         ],
-        category: 'Navigation'
+        category: 'Vim Commands'
     },
     {
         command: 'k',
@@ -187,7 +187,7 @@ const vimCommands = [
             '5k - Move five lines up.',
             'Ctrl-b - Scroll up one full screen.'
         ],
-        category: 'Navigation'
+        category: 'Vim Commands'
     },
     {
         command: 'l',
@@ -197,7 +197,7 @@ const vimCommands = [
             '5l - Move five characters right.',
             '$ - Move to the end of the current line.'
         ],
-        category: 'Navigation'
+        category: 'Vim Commands'
     },
     {
         command: 'w',
@@ -207,7 +207,7 @@ const vimCommands = [
             '5w - Move forward five words.',
             'e - Move to the end of the current or next word.'
         ],
-        category: 'Navigation'
+        category: 'Vim Commands'
     },
     {
         command: 'b',
@@ -217,7 +217,7 @@ const vimCommands = [
             '5b - Move backward five words.',
             'ge - Move to the end of the previous word.'
         ],
-        category: 'Navigation'
+        category: 'Vim Commands'
     },
     {
         command: '{',
@@ -227,7 +227,7 @@ const vimCommands = [
             '5{ - Move backward five paragraphs.',
             '} - Move to the start of the next paragraph.'
         ],
-        category: 'Navigation'
+        category: 'Vim Commands'
     },
     {
         command: ':',
@@ -237,7 +237,7 @@ const vimCommands = [
             ':$ - Jump to the last line of the file.',
             ':50 - Jump to line 50.'
         ],
-        category: 'Navigation'
+        category: 'Vim Commands'
     }
 ];
 commandsData.push(...vimCommands);
