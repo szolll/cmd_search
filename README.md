@@ -8,10 +8,13 @@ cmd_search is a lightweight, offline tool designed to provide quick access to co
 
 ## Features
 
-Offline Functionality: Operates entirely without internet, suitable for restricted environments.
-Search Interface: User-friendly search for rapid command lookup.
-Responsive Layout: Compatible with desktops, tablets, and mobiles.
-Automated Linting: GitHub Actions workflow for HTML, CSS, and JavaScript validation.
+-Offline Functionality: Operates entirely without internet, suitable for restricted environments.
+
+-Search Interface: User-friendly search for rapid command lookup.
+
+- Responsive Layout: Compatible with desktops, tablets, and mobiles.
+
+-Automated Linting: GitHub Actions workflow for HTML, CSS, and JavaScript validation.
 
 ## Installation
 
