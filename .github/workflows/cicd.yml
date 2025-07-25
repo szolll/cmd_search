@@ -43,14 +43,20 @@ jobs:
             response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
               -H "Accept: application/vnd.github+json" \
               "https://api.github.com/repos/${{ github.repository }}/languages")
+            echo "Raw API response (attempt $attempt): $response" >> language_response.log
             if echo "$response" | jq . > /dev/null 2>&1; then
-              echo "languages=$response" >> $GITHUB_ENV
+              # Write response to a temporary file to avoid env command issues
+              echo "$response" > language_response.json
+              # Encode response to handle special characters
+              encoded_response=$(base64 -w0 language_response.json)
+              echo "languages=$encoded_response" >> $GITHUB_ENV
               echo "API call succeeded on attempt $attempt"
               break
             else
               echo "API call failed on attempt $attempt: $response"
               if [ $attempt -eq 3 ]; then
                 echo "Error: Failed to retrieve valid JSON after 3 attempts."
+                cat language_response.log
                 exit 1
               fi
               sleep 2
@@ -67,21 +73,23 @@ jobs:
             echo "Error: No language statistics retrieved."
             exit 1
           fi
+          # Decode the response
+          decoded_languages=$(echo "$languages" | base64 -d)
           # Log raw output for debugging
-          echo "Raw language output: $languages"
+          echo "Raw language output: $decoded_languages"
           # Validate JSON format
-          if ! echo "$languages" | jq . > /dev/null 2>&1; then
+          if ! echo "$decoded_languages" | jq . > /dev/null 2>&1; then
             echo "Error: Invalid JSON format in language statistics."
             exit 1
           fi
           # Check if relevant languages exist
-          relevant_langs=$(echo "$languages" | jq -r '
+          relevant_langs=$(echo "$decoded_languages" | jq -r '
             with_entries(select(.key | IN("HTML", "CSS", "JavaScript", "YAML"))) |
             to_entries | length')
           if [ "$relevant_langs" -eq 0 ]; then
             echo "No HTML, CSS, JavaScript, or YAML files found."
           else
-            echo "$languages" | jq -r '
+            echo "$decoded_languages" | jq -r '
               with_entries(select(.key | IN("HTML", "CSS", "JavaScript", "YAML"))) |
               (map(.value) | add) as $total |
               to_entries |
