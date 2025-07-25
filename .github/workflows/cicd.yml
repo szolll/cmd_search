@@ -21,17 +21,19 @@ jobs:
       # Step 2: Set up jq for JSON processing
       - name: Cache jq
         uses: actions/cache@v4
+        id: cache-jq
         with:
-          path: ~/jq
+          path: ~/.jq-cache
           key: jq-${{ runner.os }}-v1.7
       - name: Install jq
         run: |
           if ! command -v jq &> /dev/null; then
-            mkdir -p ~/jq
-            curl -L https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux64 -o ~/jq/jq
-            chmod +x ~/jq/jq
-            echo "~/jq" >> $GITHUB_PATH
+            mkdir -p ~/.jq-cache
+            curl -L https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux64 -o ~/.jq-cache/jq
+            chmod +x ~/.jq-cache/jq
+            echo "~/.jq-cache" >> $GITHUB_PATH
           fi
+        if: steps.cache-jq.outputs.cache-hit != 'true'
 
       # Step 3: Retrieve repository language statistics via GitHub API with retries
       - name: Get Repository Languages
@@ -94,8 +96,21 @@ jobs:
               (map(.value) | add) as $total |
               sort_by(-.value) |
               .[] | "\(.key): \(.value / $total * 100 | (. * 10 | round / 10))% (\(.value) bytes)"
-            '
+            ' | tee language_breakdown.txt
           fi
+        # Debug: Confirm job completion
+        - name: Debug Job Completion
+          run: echo "Check-languages job completed successfully."
+
+      # Step 5: Save language comments (optional, enables if needed)
+      # - name: Comments Language Breakdown
+      #   run: |
+      #     if [ -f language_breakdown.txt ]; then
+      #       gh pr comment -F language_breakdown.txt
+      #     fi
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   if: ${{ github.event_name == 'pull_request' }}
 
   lint-workflows:
     runs-on: ubuntu-latest
@@ -108,74 +123,102 @@ jobs:
       - name: Run actionlint
         run: |
           if compgen -G ".github/workflows/*.yml" > /dev/null; then
-            docker run --rm -v ${{ github.workspace }}:/repo --workdir /repo rhysd/actionlint:latest -color .github/workflows/*.yml
+            docker run --rm -v ${{ github.workspace }}:/repo --workdir /repo/workflows rhysd/actionlint:latest -color .github/workflows/*.yml
           else
             echo "No workflow YAML files found to lint."
           fi
         continue-on-error: true
+      # Debug: Confirm job completion
+      - name: Debug Job Completion
+        run: echo "Lint-workflows job completed successfully."
 
   lint-code:
     runs-on: ubuntu-latest
     steps:
       # Step 1: Checks out the repository
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Install yamllint
+      # Step 2: Cache apt packages
+      - name: Cache apt packages
+        uses: actions/cache@v4
+        id: apt-cache
+        with:
+          path: /var/cache/apt/archives
+          key: apt-${{ runner.os }}-yamllint-${{ hashFiles('/etc/apt/sources.list.d/*') }}
+
+      # Step 3: Install yamllint
       - name: Install yamllint
         run: |
           sudo apt-get update
           sudo apt-get install -y yamllint
+        if: steps.apt-cache.outputs.cache-hit != 'true'
 
-      # Step 3: Run yamllint for YAML files
+      # Step 4: Run yamllint for YAML files
       - name: Run yamllint
         run: |
           if compgen -G "**/*.yml" > /dev/null || compgen -G "**/*.yaml" > /dev/null; then
-            yamllint --strict **/*.yml **/*.yaml
+            yamllint --strict **/*.yml **/*.yaml | tee -a lint_results.txt
           else
-            echo "No YAML files found to lint."
+            echo "No YAML files found to lint." | tee -a lint_results.txt
           fi
         continue-on-error: true
 
-      # Step 4: Set up Node.js for ESLint and Stylelint
+      # Step 5: Set up Node.js for ESLint and Stylelint
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
         if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '') }}
 
-      # Step 5: Install ESLint and Stylelint if package.json exists
+      # Step 6: Install ESLint and Stylelint if package.json exists
       - name: Install linting tools
         run: |
           if [ -f package.json ]; then
             npm install --save-dev eslint stylelint stylelint-config-standard
             npx eslint --init --yes || true
           else
-            echo "No package.json found, skipping ESLint and Stylelint setup."
+            echo "No package.json found, skipping ESLint and Stylelint setup." | tee -a lint_results.txt
           fi
         if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '') }}
 
-      # Step 6: Run ESLint for JavaScript
+      # Step 7: Run ESLint for JavaScript
       - name: Run ESLint
         run: |
           if compgen -G "**/*.js" > /dev/null; then
-            npx eslint **/*.js
+            npx eslint **/*.js | tee -a lint_results.txt
           else
-            echo "No JavaScript files found to lint."
+            echo "No JavaScript files found to lint." | tee -a lint_results.txt
           fi
         continue-on-error: true
         if: ${{ github.event_name != 'workflow_dispatch' && hashFiles('**/*.js') != '' }}
 
-      # Step 7: Run Stylelint for CSS
+      # Step 8: Run Stylelint for CSS
       - name: Run Stylelint
         run: |
           if compgen -G "**/*.css" > /dev/null; then
-            npx stylelint **/*.css
+            npx stylelint **/*.css | tee -a lint_results.txt
           else
-            echo "No CSS files found to lint."
+            echo "No CSS files found to lint." | tee -a lint_results.txt
           fi
         continue-on-error: true
         if: ${{ github.event_name != 'workflow_dispatch' && hashFiles('**/*.css') != '' }}
+
+      # Step 9: Debug Job Completion
+      - name: Debug Job Completion
+        run: echo "Lint-code job completed successfully."
+
+      # Step 10: Save linting results (optional, enable if needed)
+      # - name: Commit Linting Results
+      #   run: |
+      #     if [ -f lint_results.txt ]; then
+      #       git config user.name "GitHub Actions"
+      #       git config user.email "actions@github.com"
+      #       git add lint_results.txt
+      #       git commit -m "Update linting results"
+      #       git push
+      #     fi
+      #   if: ${{ github.event_name != 'pull_request' }}
 
   codeql-analysis:
     runs-on: ubuntu-latest
@@ -208,4 +251,9 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         continue-on-error: true
+        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.html') != '' || hashFiles('**/*.css') != '' || hashFiles('**/*.js') != '' || hashFiles('**/*.yaml') != '' || hashFiles('**/*.yml') != '') }}
+
+      # Step 5: Debug Job Completion
+      - name: Debug Job Completion
+        run: echo "CodeQL-analysis job completed successfully."
         if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.html') != '' || hashFiles('**/*.css') != '' || hashFiles('**/*.js') != '' || hashFiles('**/*.yaml') != '' || hashFiles('**/*.yml') != '') }}
