@@ -2,7 +2,6 @@
 name: Language Checker
 
 # Controls when the action will run.
-# Runs on push and pull requests to the main branch, and allows manual triggering.
 on:
   push:
     branches: [ main ]
@@ -152,18 +151,13 @@ jobs:
           path: /var/cache/apt/archives
           key: apt-${{ runner.os }}-yamllint-${{ hashFiles('/etc/apt/sources.list.d/*') }}
         continue-on-error: true
+        if: ${{ hashFiles('/var/cache/apt/archives/*.deb') != '' }}
 
       # Step 3: Install yamllint
       - name: Install yamllint
         run: |
-          if [ -d /var/cache/apt/archives ] && [ "$(ls -A /var/cache/apt/archives)" ]; then
-            sudo apt-get update
-            sudo apt-get install -y yamllint
-          else
-            echo "No apt cache directory found or directory is empty, performing fresh installation."
-            sudo apt-get update
-            sudo apt-get install -y yamllint
-          fi
+          sudo apt-get update
+          sudo apt-get install -y yamllint
         if: steps.apt-cache.outputs.cache-hit != 'true'
         continue-on-error: true
 
@@ -262,22 +256,17 @@ jobs:
       # Step 3: Create CodeQL config if missing
       - name: Create CodeQL Config
         run: |
-          if [ ! -f .codeql/codeql-config.yml ]; then
-            mkdir -p .codeql
-            cat << EOF > .codeql/codeql-config.yml
-            paths:
-              - '**/*.html'
-              - '**/*.css'
-              - '**/*.js'
-              - '**/*.yaml'
-              - '**/*.yml'
-            paths-ignore:
-              - '**/*.php'
-            EOF
-            echo "Created .codeql/codeql-config.yml"
-          else
-            echo "CodeQL config file already exists."
-          fi
+          mkdir -p .codeql
+          echo "paths:" > .codeql/codeql-config.yml
+          echo "  - '**/*.html'" >> .codeql/codeql-config.yml
+          echo "  - '**/*.css'" >> .codeql/codeql-config.yml
+          echo "  - '**/*.js'" >> .codeql/codeql-config.yml
+          echo "  - '**/*.yaml'" >> .codeql/codeql-config.yml
+          echo "  - '**/*.yml'" >> .codeql/codeql-config.yml
+          echo "paths-ignore:" >> .codeql/codeql-config.yml
+          echo "  - '**/*.php'" >> .codeql/codeql-config.yml
+          echo "Created .codeql/codeql-config.yml"
+          cat .codeql/codeql-config.yml
         if: env.files_found == 'true'
         continue-on-error: true
 
@@ -291,7 +280,7 @@ jobs:
             exit 1
           fi
         if: env.files_found == 'true'
-        continue-on-error: true
+        continue-on-error: false
 
       # Step 5: Initialize CodeQL for JavaScript
       - name: Initialize CodeQL
