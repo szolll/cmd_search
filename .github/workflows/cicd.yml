@@ -33,12 +33,15 @@ jobs:
             echo "~/jq" >> $GITHUB_PATH
           fi
 
-      # Step 3: Retrieve repository language statistics
+      # Step 3: Retrieve repository language statistics via GitHub API
       - name: Get Repository Languages
-        uses: austenstone/list-repository-languages@main
         id: list-languages
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/languages")
+          echo "languages=$response" >> $GITHUB_ENV
         continue-on-error: true
 
       # Step 4: Validate and display language breakdown
@@ -46,23 +49,32 @@ jobs:
         run: |
           echo "Repository Language Breakdown:"
           echo "------------------------------"
-          if [ -z "${{ steps.list-languages.outputs.languages }}" ]; then
+          if [ -z "$languages" ]; then
             echo "Error: Failed to retrieve language statistics."
             exit 1
           fi
           # Log raw output for debugging
-          echo "Raw language output: ${{ steps.list-languages.outputs.languages }}"
+          echo "Raw language output: $languages"
           # Validate JSON format
-          if ! echo "${{ steps.list-languages.outputs.languages }}" | jq . > /dev/null 2>&1; then
+          if ! echo "$languages" | jq . > /dev/null 2>&1; then
             echo "Error: Invalid JSON format in language statistics."
             exit 1
           fi
-          echo "${{ steps.list-languages.outputs.languages }}" | jq -r '
-            (map(.) | add) as $total |
-            to_entries |
-            sort_by(-.value) |
-            .[] | "\(.key): \(.value / $total * 100 | (. * 10 | round / 10))% (\(.value) bytes)"
-          '
+          # Check if relevant languages exist
+          relevant_langs=$(echo "$languages" | jq -r '
+            with_entries(select(.key | IN("HTML", "CSS", "JavaScript", "YAML"))) |
+            to_entries | length')
+          if [ "$relevant_langs" -eq 0 ]; then
+            echo "No HTML, CSS, JavaScript, or YAML files found."
+          else
+            echo "$languages" | jq -r '
+              with_entries(select(.key | IN("HTML", "CSS", "JavaScript", "YAML"))) |
+              (map(.value) | add) as $total |
+              to_entries |
+              sort_by(-.value) |
+              .[] | "\(.key): \(.value / $total * 100 | (. * 10 | round / 10))% (\(.value) bytes)"
+            '
+          fi
 
   lint-workflows:
     runs-on: ubuntu-latest
@@ -74,7 +86,11 @@ jobs:
       # Step 2: Run actionlint for workflow files
       - name: Run actionlint
         run: |
-          docker run --rm -v ${{ github.workspace }}:/repo --workdir /repo rhysd/actionlint:latest -color .github/workflows/*.yml
+          if compgen -G ".github/workflows/*.yml" > /dev/null; then
+            docker run --rm -v ${{ github.workspace }}:/repo --workdir /repo rhysd/actionlint:latest -color .github/workflows/*.yml
+          else
+            echo "No workflow YAML files found to lint."
+          fi
         continue-on-error: true
 
   lint-code:
@@ -84,41 +100,61 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up Node.js for ESLint and Stylelint
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      # Step 3: Install yamllint
+      # Step 2: Install yamllint
       - name: Install yamllint
         run: |
           sudo apt-get update
           sudo apt-get install -y yamllint
 
-      # Step 4: Run yamllint for YAML files
+      # Step 3: Run yamllint for YAML files
       - name: Run yamllint
         run: |
-          yamllint --strict **/*.yml **/*.yaml
+          if compgen -G "**/*.yml" > /dev/null || compgen -G "**/*.yaml" > /dev/null; then
+            yamllint --strict **/*.yml **/*.yaml
+          else
+            echo "No YAML files found to lint."
+          fi
         continue-on-error: true
 
-      # Step 5: Install ESLint and Stylelint
+      # Step 4: Set up Node.js for ESLint and Stylelint
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '') }}
+
+      # Step 5: Install ESLint and Stylelint if package.json exists
       - name: Install linting tools
         run: |
-          npm install --save-dev eslint stylelint stylelint-config-standard
-          npx eslint --init || true # Initialize ESLint with default config if not present
+          if [ -f package.json ]; then
+            npm install --save-dev eslint stylelint stylelint-config-standard
+            npx eslint --init --yes || true
+          else
+            echo "No package.json found, skipping ESLint and Stylelint setup."
+          fi
+        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.js') != '' || hashFiles('**/*.css') != '') }}
+
       # Step 6: Run ESLint for JavaScript
       - name: Run ESLint
         run: |
-          npx eslint **/*.js
+          if compgen -G "**/*.js" > /dev/null; then
+            npx eslint **/*.js
+          else
+            echo "No JavaScript files found to lint."
+          fi
         continue-on-error: true
+        if: ${{ github.event_name != 'workflow_dispatch' && hashFiles('**/*.js') != '' }}
 
       # Step 7: Run Stylelint for CSS
       - name: Run Stylelint
         run: |
-          npx stylelint **/*.css
+          if compgen -G "**/*.css" > /dev/null; then
+            npx stylelint **/*.css
+          else
+            echo "No CSS files found to lint."
+          fi
         continue-on-error: true
+        if: ${{ github.event_name != 'workflow_dispatch' && hashFiles('**/*.css') != '' }}
 
   codeql-analysis:
     runs-on: ubuntu-latest
@@ -131,23 +167,21 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step 2: Initialize CodeQL for JavaScript and YAML
+      # Step 2: Initialize CodeQL for JavaScript
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: javascript
           queries: security-and-quality
-          paths: |
-            **/*.html
-            **/*.css
-            **/*.js
-            **/*.yaml
-            **/*.yml
+          config-file: .codeql/codeql-config.yml
+        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.html') != '' || hashFiles('**/*.css') != '' || hashFiles('**/*.js') != '' || hashFiles('**/*.yaml') != '' || hashFiles('**/*.yml') != '') }}
 
-      # Step 3: Autobuild (mainly for JavaScript)
+      # Step 3: Autobuild for JavaScript
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
+        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.html') != '' || hashFiles('**/*.css') != '' || hashFiles('**/*.js') != '' || hashFiles('**/*.yaml') != '' || hashFiles('**/*.yml') != '') }}
 
-      # Step 4: Perform CodeQL analysis
+      # Step 4: Perform CodeQL Analysis
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+        if: ${{ github.event_name != 'workflow_dispatch' && (hashFiles('**/*.html') != '' || hashFiles('**/*.css') != '' || hashFiles('**/*.js') != '' || hashFiles('**/*.yaml') != '' || hashFiles('**/*.yml') != '') }}
