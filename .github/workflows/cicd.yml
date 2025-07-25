@@ -70,12 +70,12 @@ jobs:
         run: |
           echo "Repository Language Breakdown:"
           echo "------------------------------"
-          if [ -z "${{languages}}" ]; then
+          if [ -z "${languages}" ]; then
             echo "Error: No language statistics retrieved."
             exit 1
           fi
           # Decode the response
-          decoded_languages=$(echo "${{languages}}" | base64 -d)
+          decoded_languages=$(echo "${languages}" | base64 -d)
           # Log raw output for debugging
           echo "Raw language output: $decoded_languages"
           # Validate JSON format
