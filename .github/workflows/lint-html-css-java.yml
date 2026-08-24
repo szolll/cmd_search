@@ -6,9 +6,28 @@ name: Language Checker
 on:
   push:
     branches: [main]
+    # Skip runs for docs-only changes.
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.txt'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
   pull_request:
     branches: [main]
+    # Skip runs for docs-only changes.
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.txt'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
   workflow_dispatch:
+
+concurrency:
+  # One run per ref: a new push cancels the previous, still-running one.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check-languages:
